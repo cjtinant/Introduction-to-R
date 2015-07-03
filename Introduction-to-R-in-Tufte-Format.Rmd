@@ -1,0 +1,721 @@
+---
+title: "An Overview of the Tufte Handout style in the R markdown format ..."
+author: "Jason Tinant"
+date: "July 1st, 2015"
+output: rmarkdown::tufte_handout
+---
+
+# Introduction
+[^tufte_latex]: https://code.google.com/p/tufte-latex/
+[^books_be]: http://www.edwardtufte.com/tufte/books_be
+[^R_article]: http://journal.r-project.org/archive/2013-1/hofmann-unwin-cook.pdf
+[^pdf_latex]: https://danieljhocking.wordpress.com/2012/12/15/missing-pdflatex/
+[^more_tufte]: http://mirrors.ibiblio.org/CTAN/macros/latex/contrib/tufte-latex/sample-handout.pdf
+[^custom_graphics]: http://www.r-bloggers.com/how-to-customize-ggplot2-graphics/
+[^rticles]: https://github.com/rstudio/rticles/blob/master/inst/rmarkdown/templates/tufte_ebook/skeleton/skeleton.Rmd
+[^ditch_word]:http://inundata.org/2012/12/04/how-to-ditch-word/
+[^R-project]: http://www.r-project.org
+[^R-studio]: http://www.rstudio.com
+[^Tufte_handout]:http://rmarkdown.rstudio.com/tufte_handout_format.html#comment-1582377678
+[^Wickersham_cheatsheet]:http://had.co.nz/stat480/r/
+[^Rmarkdown]:(http://rmarkdown.rstudio.com)
+
+\newthought{R is a statistical programming language} that includes a base package and user generated packages that can be installed and called from the R console.  To get started in R, download the most recent version of R [^R-project]and Rstudio[^R-studio]. Rstudio is an integrated development environment (IDE) for the R-package.  R and Rstudio are open source programs supported by the user community.   
+
+\newthought{This document is an introduction to R} and the Tufte Handout [^Tufte_handout] style in R Markdown. 
+The introduction to R is from Hadley Wickersham's cheatsheet [^Wickersham_cheatsheet].
+The Tufte-\LaTeX\ [^tufte_latex] handout is in a style similar to the one Edward Tufte uses in his books. Tufte's style uses extensive sidenotes, tight integration of graphics with text, and a well-set typography. 
+
+\newthought{Start Rstudio and create a new project} using the button in the upper-left hand portion of the Rstudio window.  Install and run the R Markdown package by typing the following code into the console.  The first command tells R to download and install a package from CRAN.  The second command tells R to turn on the package. The `#` in a code chunk tells R that you are making a comment.  
+```{r Install-R-Markdown,tidy=TRUE,echo=TRUE,eval=FALSE} 
+install.packages("rmarkdown") 
+# this installs the R markdown package.
+```
+
+```{r Markdown-Library,tidy=TRUE,echo=TRUE,eval=FALSE}
+library(rmarkdown) 
+#this will turn on the R markdown package
+```
+
+Set the working directory by clicking on the `Session` menu followed by `Set Working Directory` and navigate to the the project directory folder you just created. 
+
+
+\newthought{Packages in R} need to be installed just once.  However, every time you want to use a package you need to call up the package with the `library` function.
+ Once R Markdown is working you can install several useful computational packages. The packages include packages for plotting data, performing  statistical tests, and packages  specific to hydrologic analysis.  There are also some packages that have been installed that I do not wish to run at present, but plan to use in the future.  The latter packages are noted with a '#' in front of the package.  You can find more out about a particular package by typing '?' and the name of a package.  Finally, there is a command to open the USGS R package library.  
+
+```{r Install-packages, tidy=TRUE,echo=TRUE,eval=FALSE} 
+source("http://owi.usgs.gov/R/add_gran_repo.R")
+
+install.packages("grid")
+install.packages("gridExtra")
+install.packages("plyr")
+install.packages("dunn.test")
+install.packages("reshape2")
+install.packages("scales")
+install.packages("xtable")
+install.packages("dataRetrieval")
+install.packages("EGRET")
+install.packages(c("chron","doBy","hydroGOF","lmomco"))
+install.packages("EflowStats",repos="http://usgs-r.github.com",type="source")
+#install.packages("car")
+#install.packages("lubridate")
+#install.packages("zoo")
+#install.packages("formatR")
+```
+
+
+\newthought{Its a good idea} to start a R Markdown document with a code block to set up  defaults, the bibliography, statistical tests, and so forth[^rticles].  
+
+```{r library}
+library(knitcitations)
+library(knitr)
+library(xtable)
+library(ggplot2)
+library(pander)
+cite_options(
+              citation_format = "pandoc",
+                         style="citation"
+             ) 
+cleanbib() # Empties the citation buffer
+options(xtable.comment = FALSE) 
+options(xtable.booktabs = TRUE)
+```
+
+\newthought{The beginning of the document} is also a good place to set a theme for the entire document using ggplot2::theme_set().
+Different themes may also be set for individual plots[^custom_graphics].  The first code line below sets the theme to 10-point black and white with gray gridlines.  The second code line sets R back to the default theme.
+
+```{r setting-a-global-theme}
+theme_set(theme_bw(10))
+theme_set(theme_gray(10))
+```
+
+\newthought{Images and graphics} play an integral role in Tufte handouts.  
+```{r figure-margin,fig.margin=TRUE, fig.cap = "Sepal length vs. petal length, colored by species"}
+qplot(Sepal.Length, Petal.Length, data = iris, color = Species)
+```
+
+\newthought{The iris data plotted in the margin} is from (Fisher's or Anderson's) iris data set, which gives the measurements in centimeters of the variables `sepal length` and `width` and `petal length` and `width`, respectively, for 50 flowers from each of 3 species of iris. The species are `Iris setosa`, `I. versicolor`, and `I. virginica`.  If you want to know more about the iris dataset, type `?iris` in the console.
+
+\newthought{The *fig.margin* knitr chunk option} can be used to place figures or tables in the margin.  The `fig.cap` chunk option provides a figure caption. You can adjust the proportions of figures using the `fig.width` and `fig.height` options. These variables are specified in inches, and will be automatically scaled to fit within the handout margin.  You can also include \LaTeX\ equations in the margin by explicitly invoking the `marginfigure` environment.  The `\caption` command adds additional text below the equation.
+
+\begin{marginfigure}
+$$\frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x).$$
+\caption{An equation}
+\end{marginfigure}
+
+
+\newthought{The Tufte handout format} displays figures, equations, sidenotes, and tables well.  You can arrange for figures to span across the entire page by using the `fig.fullwidth` chunk option. The `fig.width` and `fig.height` chunk options establish the proportions of the figure. Full width figures tend to look better if their height is minimized.  Besides margin and full width figures, you can of course also include figures constrained to the main column.
+
+```{r full-width-example, fig.width = 10, fig.height = 2, fig.fullwidth = TRUE, fig.cap = "Full width figure"}
+qplot(wt, mpg, data=mtcars, colour=factor(cyl))
+```
+
+\pagebreak
+
+```{r inline-figure-example, fig.width = 8, fig.height = 3.5,fig.cap = "An inline figure"}
+qplot(factor(cyl), mpg, data = mtcars, geom = "boxplot")
+```
+
+\newthought{The Tufte handout style in R Markdown} provides some unique features in the visual quantification of data.  R allows the user to easily graph data to identify data quality issues and to support the interpretation of results [^R_article]. 
+This document's style shown is unique to Tufte's later books [^books_be]. Each section begins with a bit of vertical space, a non-indented paragraph, and the first few words are set in small caps. To accomplish this using this style, use the `\newthought` command.
+
+\newthought{The extensive use of sidenotes} is one of the most prominent and distinctive features of Tufte's style. A wide margin provides room for sidenotes and small figures. Any use of a footnote will automatically be converted to a sidenote. ^[This is a sidenote that was entered using a footnote.] If you'd like to place ancillary information in the margin without the sidenote mark (the superscript number), you can use the `\marginnote` command. \marginnote{This is a margin note.  Notice that there isn't a number preceding the note.} Note also that the two footnote references (`tufte_latex` and `books_be`, both defined below) were also included in the margin on the first page of this document.
+
+\newthought{The `xtable` package} formats \LaTeX\ tables that integrate well with the rest of the Tufte handout style\marginnote{ a nice guide to xtable can be found at http://cran.r-project.org/web/packages/xtable/vignettes/xtableGallery.pdf}. Note that it's important to set the `xtable.comment` and `xtable.booktabs` options as shown below to ensure the table is formatted correctly for inclusion in the document.  
+
+```{r table example, results='asis'}
+xtable(head(mtcars[,1:6]), caption = "First rows of mtcars")
+```
+
+&nbsp;
+
+\newthought{One challenge in knitting this document initially} was that the path to 'pdflatex` was not initially defined in R. The path to 'pdflatex'[^pdf_latex]
+can be set using the following commands: 
+```{r setting-path-to-pdflatex,eval=FALSE}
+Sys.which("pdflatex")
+Sys.setenv(PATH=paste(Sys.getenv("PATH"),"/usr/texbin",sep=":"))
+Sys.getenv("PATH")
+Sys.which("pdflatex")
+```
+
+#Loading data in R ------------------------------------------------------
+
+There are several ways to load a csv file (recommended output from Excel) into R.  
+
+
+_In Windows_ 
+
+diamonds <- read.csv("c:\\documents and settings\\desktop\\diamonds.csv")
+
+&nbsp;
+
+_In anything else_
+
+
+diamonds <- read.csv("~/desktop/diamonds.csv")
+
+&nbsp;
+
+_Prompt for a file name_
+
+diamonds <- read.csv(file.choose())
+
+&nbsp;
+
+_Load from a website_
+
+diamonds <- read.csv("http://had.co.nz/stat480/lectures/diamonds.csv")
+
+&nbsp;
+
+_Load a file delimited by spaces_     
+
+diamonds <- read.table(file.choose())
+
+&nbsp;
+
+_Load a tab-delimited file_     
+
+diamonds <- read.table(file.choose(), sep="\t")
+
+
+# Examining an object ------------------------------------------------------
+There are several ways to examine an object.  The code chunks below provides:
+
+* a look at the beginning of a dataset, 
+
+* a look at the end of a dataset, 
+
+* a statistical summary of the data, and
+
+* a look at the structure of the dataset. 
+
+If you have a large object, it is a bad idea to type just the name of the object e.g. the `diamonds` dataset.  In this case it is a better to examine just the first sevaral rows of the data. Typing `diamonds` results in a **lot** of rows for the diamonds dataset *(n = 53,940 observations)*.  If you want more practice in examining objects, you can use the `iris` dataset *(n=150 observations)* to run the commands shown below.
+
+```{r head}
+head(diamonds)
+```
+
+&nbsp;
+
+```{r tail}
+tail(diamonds)
+```
+
+&nbsp;
+
+```{r summary}
+summary(diamonds)
+```
+
+&nbsp;
+
+```{r structure}
+str(diamonds)
+```
+
+&nbsp;
+
+# Graphics -------------------------------------------------------------------
+# Scatterplots 
+## Two continuous variables
+\newthought{If you have two continuous variables}, then use a scatterplot.  
+
+
+```{r scatterplot1,fig.margin=TRUE, fig.cap = "Scatterplot of price vs. caret"}
+qplot(carat, price, data=diamonds)
+```
+
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r scatterplot2,fig.margin=TRUE, fig.cap = "Scatterplot of log price vs. caret"}
+qplot(log(carat), log(price), data=diamonds)
+```
+
+\pagebreak
+
+```{r scatterplot3,fig.margin=TRUE, fig.cap = "Scatterplot of price/caret vs. caret"}
+qplot(carat, price/carat, data=diamonds)
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+Facetting displays the same plot for different subsets of the data.  Use the facets argument, with rows on left hand-side  
+```{r facet1, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Scatterplot of price vs. caret; facets = color"}
+qplot(price, carat, data=diamonds, facets = . ~ color)
+```
+
+\pagebreak
+
+```{r facet2, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Scatterplot of price vs. caret; facets = color and clarity"}
+qplot(price, carat, data=diamonds, facets = color ~ clarity)
+```
+
+
+# One continuous and one categorical variable  ----------------------------------
+You can also plot one continuous and one categorical variable.  
+
+```{r scatterplot6,fig.margin=TRUE, fig.cap = "Scatterplot of price/caret vs. caret"}
+qplot(color, price/carat, data=diamonds)
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+There is too much overplotting in the scatterplot above for it to be very useful.  We can only see the range of the data.  We could spread the points out a little bit, by adding random jitter.
+
+```{r jitter-plot,fig.margin=TRUE,fig.cap="Scatterplot of price vs. caret"}
+qplot(color, price/carat, data=diamonds, position="jitter")
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+Another technique is to visualize the conditional distribution, *i.e. for a given color, what is the distribution of price/color?* 
+
+```{r scatterplot7,fig.margin=TRUE, fig.cap = "Scatterplot of price vs. caret - color option"}
+qplot(carat, price, data=diamonds, color=color)
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r scatterplot8,fig.margin=TRUE, fig.cap = "Scatterplot of price vs. caret; size = caret"}
+qplot(carat, price, data=diamonds, size=carat)
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+```{r scatterplot9,fig.margin=TRUE, fig.cap = "Scatterplot of price vs. caret; shape = cut"}
+qplot(carat, price, data=diamonds, shape=cut)
+```
+*****
+
+\pagebreak
+
+# Examining distributions-------------------------------------------------
+## Boxplots and histograms
+\newthought{A boxplot provides a simple summary} of the distribution. 
+
+## Bar charts and histograms
+```{r barchart,fig.margin=TRUE, fig.cap = "Barchart of cut"}
+qplot(cut, data=diamonds, geom="bar")
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+ We can also use a histogram look at the shape of a distribution.   **ALWAYS EXPERIMENT WITH THE BIN SIZE!** 
+```{r histogram-default,fig.margin=TRUE, fig.cap = "Histogram of price for default binwidth"}
+qplot(price, data=diamonds, geom="histogram")
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r histogram-bin500,fig.margin=TRUE, fig.cap = "Histogram of price for binwidth = 10"}
+qplot(price, data=diamonds, geom="histogram", binwidth=500)
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r histogram-bin-100,fig.margin=TRUE, fig.cap = "Histogram of price for binwidth = 100"}
+qplot(price, data=diamonds, geom="histogram", binwidth=100)
+```
+*****
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r histogram-bin10,fig.margin=TRUE, fig.cap = "Histogram of price for binwidth = 500"}
+qplot(price, data=diamonds, geom="histogram", binwidth=500)
+```
+
+&nbsp;
+
+&nbsp;
+
+# Basic math and stats -----------------------------------
+\newthought{Normal math works just like you expect in R}.  R uses the usual operator order.  You can do exponents with the ^ symbol.  
+
+```{r arithmetic,fig.margin=TRUE,fig.cap="Basic mathematical computations"}
+2 * 10
+1 + 2
+
+1 + 5 * 10
+(1 + 5) * 10
+
+2 ^ 5
+4 ^ (1/2)
+```
+You can create a vector with the 'c' (short for combine) function.  Or you can use a sequence function (seq is short for sequence).  A vector is a series of numbers in a one-dimentional matrix (e.g. 1 column by n rows) that is used by computer programs to make computations.  Vectors and matrices are at the heart of R functionality.  
+
+```{r vector-example,fig.margin=TRUE,fig.cap="Basic mathematical computations"}
+c(1, 4, 6, 7)
+c(1, 2, 3, 4)
+
+
+seq(1, 10, by=2)
+seq(1, 100, length=20)
+1:10 # short hand for :
+seq(1, 10)
+```
+
+A vector is assigned to a variable with '<-'.  *We will be doing a **lot** of vector assignment in R*.
+
+```{r vectors and functions}
+a <- 1:10
+sum(a)
+prod(a)
+mean(a)
+sd(a)
+var(a)
+min(a)
+max(a)
+range(a)
+```
+
+# Missing values -----------------------------------
+\newthought{A missing value looks like a `NA`} in a data frame or other object.  It means we don't know the value of a cell.  Any function containing an `NA` will return an *NA* by default.  
+
+```{r missing-values}
+NA + 1 
+4 * NA
+mean(c(NA, 1, 2))
+
+mean(c(NA, 1, 2), na.rm=TRUE)
+sum(c(NA, 1, 2))
+sum(c(NA, 1, 2), na.rm=TRUE)
+```
+
+Many functions have an na.rm argument.  Or you can remove them yourself.  The code chunk below shows an `!`.  R reads `!` as **not**.  So, the code chunk reads:
+
+1. Make a vector by combine NA, the numbers 1 to 5, and NA into a vector
+
+2. Print **a**.
+
+3. Print the result of removing the NAs in **a** to the console.
+
+3. Make a new vector of **a** after you remove the `NAs`.
+
+4. Print the new **a**.
+
+If you make changes to a variable then *don't forget to reassign the variable to the new value!*
+
+```{r removing-NAs}
+a <- c(NA, 1:5, NA)
+
+a
+
+a[!is.na(a)]
+
+a <- a[!is.na(a)]
+
+a
+```
+
+
+# Generating random numbers -------------------------
+R provides a random number generator and sevaral wys to plot the numbers as a theoretical distribution. Always check with the documentation that the distribution is parameterised the way you expect e.g. for normal, standard deviation, not the variance. 
+
+Distribution  | R structure
+--------------|------------
+Normal        | rnorm
+Poisson       | rpois
+Binomial      | rbinom
+Gamma         | rgamma
+
+look at help.search(keyword="distribution") for more distributions
+
+&nbsp;
+
+Generate 5 random numbers from a normal distribution.
+```{r normal-distribution-5}
+rnorm(5)
+```
+
+Generate 10 random numbers from a normal distribution.
+```{r normal-distribution-10}
+rnorm(10)
+```
+****
+Generate 10 random numbers from a normal distribution.
+```{r normal-distribution-25}
+rnorm(25)
+```
+****
+Generate 25 random numbers with a mean of 10 and a standard deviation of 25.
+```{r normal-distribution-mean-10-sd-25}
+rnorm(25, mean=10,sd=25)
+```
+****
+Make a poisson distribution of n = 10 with a lambda of 10.  To check the `rpois` function you can type `?rpois` in the terminal.
+```{r poisson-distribution-n-10-lambda-25}
+rpois(10, 10)
+```
+
+# Displaying an empirical distribution ----------------
+An empirical distribution is one derived from data, as opposed to a theoretical distribution.  More replicates will give a better estimate of the distribution
+(but will take more time, obviously).
+
+```{r emperical-uniform-n10,fig.margin=TRUE,fig.cap="Histogram of a uniform distribution centered around 10, n=10"}
+qplot(replicate(10, mean(runif(10))), type="histogram")
+```
+*****
+
+## Repeating a task
+\newthought{You can easily repeat tasks} in R. using the *replicate(n, task)* function.  The function repeats a task `n` times and joins the result into a single vector.  The task below is to make a quick plot `qplot` of 100 repititations of the average of ten random samples of a uniform distribution centered at 0.5 using a histogram.
+```{r emperical-uniform-n100,fig.margin=TRUE,fig.cap="HHistogram of the mean of 10 random samples from a uniform distribution, n=100"}
+qplot(replicate(100, mean(runif(10))), type="histogram")
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+Make a quick histogram of 1000 repitations of the average of ten random samples of a uniform distribution.
+```{r emperical-uniform-n1000,fig.margin=TRUE,fig.cap="Histogram of the mean of 10 random samples from a uniform distribution, n=1000"}
+qplot(replicate(1000, mean(runif(10))), type="histogram")
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+Make a quick histogram of 10,000 repitations of the average of ten random samples of a uniform distribution.
+```{r emperical-uniform-n10000,fig.margin=TRUE,fig.cap="Histogram of a uniform distribution centered around 10, n=10000"}
+qplot(replicate(10000, mean(runif(10))), type="histogram")
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+Make a quick histogram of 100,000 repitations of the average of ten random samples of a uniform distribution.
+```{r emperical-uniform-n100,000,fig.margin=TRUE,fig.cap="Histogram of a uniform distribution centered around 10, n=100000"}
+qplot(replicate(100000, mean(runif(10))), type="histogram")
+```
+
+
+# Central limit theorem -------------------------------
+\newthought{We can explore the central limit theorem} using the tools above.  We will also use functions to reduce duplication in our code.  First get the simple case working. This Easy! - we have already done this above.  Next, figure out what parameters we want.  We'll start with:
+
+
+n = number of replicates
+m = number of samples to average over
+
+
+We can then create variables, and then use those in an expression.
+
+```{{r emperical-uniform-variables,fig.margin=TRUE,fig.cap="The same histogram as above using variables instead of integers}
+n <- 100
+m <- 10
+qplot(replicate(n, mean(runif(m))), type="histogram")
+```
+This is _exactly_ what we had in our example above, we've just **replaced a couple of numbers with variables**. Next, we wrap it our expression in a function with the parameters we figured out.  Notice the indententation on the inside of the function to make it easier to see where it begins and ends.
+
+```{r clt-function}
+clt <- function(n, m) {
+  x <- replicate(n, mean(runif(m)))
+  qplot(x, type="histogram")
+}
+```
+
+Now check that the new function works:
+
+```{r central-limit-example1,fig.margin=TRUE,fig.cap="Exploring the central limit theorum using our first function"}
+clt(1000, 1)
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+```{r central-limit-example2,fig.margin=TRUE,fig.cap="Central limit theorum with m = 2"}
+clt(1000, 2)
+```
+*****
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+Let's make our function a bit more flexible, so that we can specify the distribution function as well. So we need one new parameter: `r`, the random number generating function.
+
+r <- runif
+qplot(replicate(n, mean(r(m))), type="histogram")
+
+# It works, so now for the next step:
+
+clt <- function(n, m, r) {
+  x <- replicate(n, mean(r(m)))
+  qplot(x, type="histogram")
+}
+
+clt(1000, 1, runif)
+clt(1000, 1, rnorm)
+clt(1000, 1, rpois)
+
+# Uh oh!  That last one didn't work.  Why not?
+# The rpois function needs another parameter, lambda, which
+# we haven't supplied.  
+
+# The easiest way to get around this is to create a new 
+# random number generate that generates random poisson number
+# with given lambda
+
+clt(1000, 1, function(n) rpois(n, lambda=5))
+clt(1000, 1, function(n) rpois(n, lambda=10))
+clt(1000, 1, function(n) rpois(n, lambda=100))
+
+# Here you can see we didn't name the function we created,
+# we just passed it into another function.  A function with
+# no name is a called an anonymous function.
+
+# Here we see that as the mean of the lambda increases, it 
+# becomes more symmetric.  
+
+# We can also improve our clt function in another way, by 
+# adding default values.  When we don't specify the parameter in the 
+# function call, the default will be used instead.
+
+clt <- function(n=1000, m=1, r=runif) {
+  x <- replicate(n, mean(r(m)))
+  qplot(x, type="histogram")
+}
+
+# Here our defaults are: n = 100, m = 1 and r = runif
+
+clt()
+clt(10000)
+clt(m=10)
+clt(r=rnorm)
+
+# Packages also contain data: ----------------
+library(reshape)
+data(package="reshape")
+
+?french_fries
+head(friench_fries)
+str(french_fries)
+
+?tips
+head(tips)
+str(tips)
+
+# Melting data -------------------------------
+
+# When melting need to indicate which variables are 
+# identifier and which variables are measured variables
+
+ffm <- melt(french_fries, id=1:5, measure=5:9)
+
+# A variable can only be id or measured, so we only need
+# to specify one of the two
+
+ffm <- melt(french_fries, measure=5:9)
+ffm <- melt(french_fries, id=1:5)
+
+# Can also use variable names instead of column indices
+
+
+
+ffm <- melt(french_fries, id = c("time", "treatment", "subject", "rep"))
+
+
+# Casting data ---------------------------------------
+
+# Once we have data in molten form, we can cast the data into
+# different shapes by specifying which variables should go in the rows
+# and which in the columns (just like pivot tables in excel)
+
+
+
+
+
+
+
